@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+
+# Local data (SQLite analytics DB, logs)
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+logs/
+
+# Model weights are downloaded on first run, never committed
+*.pt
+*.onnx
+*.engine
+
+# Test and e2e output
+tests/e2e/output/
+backend/tests/e2e/output/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

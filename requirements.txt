@@ -1,0 +1,22 @@
+# Smart Vision AI - runtime dependencies
+# Python 3.10 - 3.12 recommended.
+#
+# CPU-only machines: install the small CPU build of PyTorch FIRST, then this file:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+#   pip install -r requirements.txt
+
+# Web backend
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.30
+pydantic>=2.6,<3
+python-dotenv>=1.0
+
+# Computer vision / AI
+ultralytics>=8.4.0          # YOLO26 support (8.4.0+); pulls in torch + opencv-python
+opencv-python>=4.9
+numpy>=1.26
+scipy>=1.11                 # Hungarian matching for the tracker
+lap>=0.5.12                 # optional fast assignment backend used by ultralytics
+
+# Timezone database for Windows (no-op on Linux/macOS)
+tzdata>=2024.1
