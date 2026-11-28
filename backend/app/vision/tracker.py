@@ -21,7 +21,7 @@ from enum import IntEnum
 
 import numpy as np
 
-from .kalman import KalmanFilterXYAH
+from .kalman import KalmanFilterXYWH
 
 try:  # SciPy gives an optimal assignment; a greedy fallback keeps things working without it.
     from scipy.optimize import linear_sum_assignment as _lsa
@@ -61,9 +61,8 @@ class Track:
     def tlwh(self) -> np.ndarray:
         if self.mean is None:
             return self._tlwh.copy()
-        cx, cy, a, h = self.mean[:4]
-        h = max(h, 1.0)
-        w = max(a * h, 1.0)
+        cx, cy, w, h = self.mean[:4]
+        w, h = max(w, 1.0), max(h, 1.0)
         return np.array([cx - w / 2, cy - h / 2, w, h])
 
     @property
@@ -72,29 +71,29 @@ class Track:
         return np.array([t[0], t[1], t[0] + t[2], t[1] + t[3]])
 
     @staticmethod
-    def _xyah(tlwh: np.ndarray) -> np.ndarray:
+    def _xywh(tlwh: np.ndarray) -> np.ndarray:
         x, y, w, h = tlwh
-        return np.array([x + w / 2, y + h / 2, w / h, h])
+        return np.array([x + w / 2, y + h / 2, w, h])
 
     # -- lifecycle --------------------------------------------------------------
-    def predict(self, kf: KalmanFilterXYAH) -> None:
+    def predict(self, kf: KalmanFilterXYWH) -> None:
         if self.mean is None:
             return
         mean = self.mean.copy()
         if self.state != TrackState.TRACKED:
-            mean[7] = 0.0  # don't let the height velocity run away while lost
+            mean[6] = mean[7] = 0.0  # don't let the size velocity run away while lost
         self.mean, self.cov = kf.predict(mean, self.cov)
 
-    def activate(self, kf: KalmanFilterXYAH, frame_id: int, now: float) -> None:
-        self.mean, self.cov = kf.initiate(self._xyah(self._tlwh))
+    def activate(self, kf: KalmanFilterXYWH, frame_id: int, now: float) -> None:
+        self.mean, self.cov = kf.initiate(self._xywh(self._tlwh))
         self.state = TrackState.TRACKED
         self.frame_id = self.start_frame = frame_id
         self.last_seen = now
         self.hits = 1
         self.is_activated = frame_id == 1
 
-    def update(self, kf: KalmanFilterXYAH, det: "Track", frame_id: int, now: float) -> None:
-        self.mean, self.cov = kf.update(self.mean, self.cov, self._xyah(det._tlwh))
+    def update(self, kf: KalmanFilterXYWH, det: "Track", frame_id: int, now: float) -> None:
+        self.mean, self.cov = kf.update(self.mean, self.cov, self._xywh(det._tlwh))
         self.state = TrackState.TRACKED
         self.is_activated = True
         self.score = det.score
@@ -171,7 +170,7 @@ class ByteTracker:
         match_thresh: float = 0.8,
         max_lost_seconds: float = 2.0,
     ) -> None:
-        self.kf = KalmanFilterXYAH()
+        self.kf = KalmanFilterXYWH()
         self.tracked: list[Track] = []
         self.lost: list[Track] = []
         self.frame_id = 0

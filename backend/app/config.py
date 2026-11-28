@@ -76,8 +76,10 @@ class Settings:
     supabase_url: str = ""
     supabase_service_role_key: str = field(default="", repr=False)
 
-    yolo_model: str = "yolo26n.pt"
-    yolo_fallback_model: str = "yolo11n.pt"
+    yolo_model: str = "yolo26n.onnx"
+    yolo_fallback_model: str = "yolo11n.onnx"
+    yolo_model_sha256: str = ""
+    allow_model_download: bool = True
     yolo_device: str = ""
     yolo_imgsz: int = 640
     allow_hog_fallback: bool = True
@@ -149,6 +151,10 @@ def load_settings() -> Settings:
     if not sqlite_path.is_absolute():
         sqlite_path = REPO_ROOT / sqlite_path
 
+    yolo_sha = _str("YOLO_MODEL_SHA256").lower()
+    if yolo_sha and (len(yolo_sha) != 64 or any(c not in "0123456789abcdef" for c in yolo_sha)):
+        raise ConfigError("YOLO_MODEL_SHA256 must be a 64-character hex SHA-256 digest")
+
     yolo_imgsz = _int("YOLO_IMGSZ", 640, 160, 1920)
     if yolo_imgsz % 32:
         raise ConfigError("YOLO_IMGSZ must be a multiple of 32")
@@ -167,8 +173,10 @@ def load_settings() -> Settings:
         sqlite_path=sqlite_path,
         supabase_url=supabase_url,
         supabase_service_role_key=supabase_key,
-        yolo_model=_str("YOLO_MODEL", "yolo26n.pt"),
-        yolo_fallback_model=_str("YOLO_FALLBACK_MODEL", "yolo11n.pt"),
+        yolo_model=_str("YOLO_MODEL", "yolo26n.onnx"),
+        yolo_fallback_model=_str("YOLO_FALLBACK_MODEL", "yolo11n.onnx"),
+        yolo_model_sha256=yolo_sha,
+        allow_model_download=_bool(os.getenv("ALLOW_MODEL_DOWNLOAD"), True),
         yolo_device=_str("YOLO_DEVICE"),
         yolo_imgsz=yolo_imgsz,
         allow_hog_fallback=_bool(os.getenv("ALLOW_HOG_FALLBACK"), True),

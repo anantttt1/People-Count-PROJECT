@@ -35,3 +35,5 @@ backend/tests/e2e/output/
 .idea/
 .DS_Store
 Thumbs.db
+models/
+backend/tests/assets/
