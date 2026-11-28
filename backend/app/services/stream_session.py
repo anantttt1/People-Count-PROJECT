@@ -178,6 +178,7 @@ class StreamSession:
     # -- persistence rows -------------------------------------------------------
     def _event_row(self, kind: str, now: float) -> dict:
         return {
+            "id": str(uuid.uuid4()),          # client-generated key makes retried inserts idempotent
             "session_id": self.id,
             "event_type": kind,
             "occurred_at": iso(now),
@@ -219,6 +220,7 @@ class StreamSession:
         if self._snap_frames == 0 or (not force and now - self._snap_started < self.snapshot_interval):
             return None
         row = {
+            "id": str(uuid.uuid4()),
             "session_id": self.id,
             "captured_at": iso(now),
             "avg_live_count": round(self._snap_live_sum / self._snap_frames, 2),
