@@ -1,22 +1,21 @@
 # Smart Vision AI - runtime dependencies
-# Python 3.10 - 3.12 recommended.
+# Python 3.10 - 3.13.   pip install -r requirements.txt
 #
-# CPU-only machines: install the small CPU build of PyTorch FIRST, then this file:
-#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-#   pip install -r requirements.txt
+# The default detector is Ultralytics YOLO26n exported to ONNX and run with onnxruntime,
+# so PyTorch is NOT needed. For PyTorch weights (.pt) / training, also install
+# requirements-ultralytics.txt.
 
 # Web backend
 fastapi>=0.115,<1.0
-uvicorn[standard]>=0.30
+uvicorn[standard]>=0.30     # includes the websockets library for /ws/stream
 pydantic>=2.6,<3
 python-dotenv>=1.0
 
 # Computer vision / AI
-ultralytics>=8.4.0          # YOLO26 support (8.4.0+); pulls in torch + opencv-python
+onnxruntime>=1.18           # runs the YOLO26 / YOLO11 ONNX models (CPU). GPU: onnxruntime-gpu
 opencv-python>=4.9
 numpy>=1.26
-scipy>=1.11                 # Hungarian matching for the tracker
-lap>=0.5.12                 # optional fast assignment backend used by ultralytics
+scipy>=1.11                 # Hungarian matching for the ByteTrack tracker
 
 # Timezone database for Windows (no-op on Linux/macOS)
 tzdata>=2024.1

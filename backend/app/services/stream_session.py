@@ -59,6 +59,7 @@ class StreamSession:
         self.live = 0
         self.frames = 0
         self.capacity_exceeded = False
+        self.paused = False
         self.fps = 0.0
         self.inference_ms = 0.0
         self._last_frame_at: float | None = None
@@ -81,6 +82,14 @@ class StreamSession:
         )
         self.counter.reconfigure(self._line(settings), settings.invert_direction, settings.anchor)
         self.settings = settings
+
+    def pause(self) -> None:
+        self.paused = True
+
+    def resume(self) -> None:
+        """After a pause the gap between frames is not a slow frame: restart the FPS clock."""
+        self.paused = False
+        self._last_frame_at = None
 
     @property
     def occupancy(self) -> int:

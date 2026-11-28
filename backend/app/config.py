@@ -65,6 +65,10 @@ class Settings:
     host: str = "127.0.0.1"
     port: int = 8000
     allowed_origins: tuple[str, ...] = ("http://localhost:8000", "http://127.0.0.1:8000")
+    allowed_hosts: tuple[str, ...] = ("localhost", "127.0.0.1", "[::1]")
+    trust_proxy: bool = False
+    ssl_certfile: str = ""
+    ssl_keyfile: str = ""
 
     access_token: str = ""
     secret_key: str = field(default_factory=lambda: secrets.token_hex(32), repr=False)
@@ -120,6 +124,16 @@ def load_settings() -> Settings:
         if not origin.startswith(("http://", "https://")):
             raise ConfigError(f"Invalid origin in ALLOWED_ORIGINS: {origin!r}")
 
+    hosts = tuple(h.strip().lower() for h in _str("ALLOWED_HOSTS", "localhost,127.0.0.1,[::1]").split(",") if h.strip())
+    if not hosts:
+        raise ConfigError("ALLOWED_HOSTS must list at least one host name")
+    if environment == "production" and "*" in hosts:
+        raise ConfigError("ALLOWED_HOSTS='*' is not allowed in production")
+
+    ssl_certfile, ssl_keyfile = _str("SSL_CERTFILE"), _str("SSL_KEYFILE")
+    if bool(ssl_certfile) != bool(ssl_keyfile):
+        raise ConfigError("Set both SSL_CERTFILE and SSL_KEYFILE (or neither)")
+
     access_token = _str("ACCESS_TOKEN")
     secret_key = _str("SECRET_KEY")
     if environment == "production":
@@ -165,6 +179,10 @@ def load_settings() -> Settings:
         host=_str("HOST", "127.0.0.1"),
         port=_int("PORT", 8000, 1, 65535),
         allowed_origins=origins,
+        allowed_hosts=hosts,
+        trust_proxy=_bool(os.getenv("TRUST_PROXY"), False),
+        ssl_certfile=ssl_certfile,
+        ssl_keyfile=ssl_keyfile,
         access_token=access_token,
         secret_key=secret_key,
         cookie_samesite=samesite,  # type: ignore[arg-type]

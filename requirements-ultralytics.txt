@@ -1,0 +1,8 @@
+# Optional: run PyTorch weights (YOLO_MODEL=yolo26n.pt), use CUDA / Apple MPS through
+# Ultralytics, or export your own ONNX models.
+#
+# CPU-only machines: install the small CPU build of PyTorch first:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+-r requirements.txt
+ultralytics>=8.4.0          # YOLO26 support starts at 8.4.0
+lap>=0.5.12                 # fast assignment backend used by ultralytics
